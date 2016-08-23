@@ -1,8 +1,8 @@
-// 
+//
 //     MINOTAUR -- It's only 1/2 bull
-// 
+//
 //     (C)opyright 2008 - 2014 The MINOTAUR Team.
-// 
+//
 
 /**
  * \file OsiLPEngine.cpp
@@ -15,18 +15,18 @@
 #include <iomanip>
 
 #if MNTROSICLP
-#include "coin/OsiClpSolverInterface.hpp"
+#include <OsiClpSolverInterface.hpp>
 #endif
 
 #if MNTROSICPX
-#include "coin/OsiCpxSolverInterface.hpp"
+#include <OsiCpxSolverInterface.hpp>
 #endif
 
 #if MNTROSIGRB
-#include "coin/OsiGrbSolverInterface.hpp"
+#include <OsiGrbSolverInterface.hpp>
 #endif
-#include "coin/CoinPackedMatrix.hpp"
-#include "coin/CoinWarmStart.hpp"
+#include <CoinPackedMatrix.hpp>
+#include <CoinWarmStart.hpp>
 
 #undef F77_FUNC_
 #undef F77_FUNC
@@ -120,13 +120,13 @@ OsiLPEngine::OsiLPEngine()
     timer_(0)
 {
   logger_ = (LoggerPtr) new Logger(LogInfo);
-#if USE_OSILP 
+#if USE_OSILP
   osilp_ = newSolver_(OsiClpEngine);
-#else 
+#else
 #error Need to set USE_OSILP
 #endif
   osilp_->setHintParam(OsiDoReducePrint);
-  osilp_->messageHandler()->setLogLevel(0); 
+  osilp_->messageHandler()->setLogLevel(0);
 #if MNTROSICLP
   OsiClpSolverInterface *osiclp = (OsiClpSolverInterface *)
     (dynamic_cast<OsiClpSolverInterface*>(osilp_));
@@ -134,7 +134,7 @@ OsiLPEngine::OsiLPEngine()
 #endif
 }
 
-  
+
 OsiLPEngine::OsiLPEngine(EnvPtr env)
   : bndChanged_(true),
     consChanged_(true),
@@ -144,7 +144,7 @@ OsiLPEngine::OsiLPEngine(EnvPtr env)
     strBr_(false)
 {
 #if USE_OSILP
-#else 
+#else
 #error Need to set USE_OSILP
 #endif
   std::string etype = env_->getOptions()->findString("lp_engine")->getValue();
@@ -252,10 +252,10 @@ void OsiLPEngine::changeBound(VariablePtr var, double new_lb, double new_ub)
 
 
 #if MNTROSICLP
-void OsiLPEngine::changeConstraint(ConstraintPtr c, LinearFunctionPtr lf, 
+void OsiLPEngine::changeConstraint(ConstraintPtr c, LinearFunctionPtr lf,
                                    double lb, double ub)
 #else
-void OsiLPEngine::changeConstraint(ConstraintPtr , LinearFunctionPtr , 
+void OsiLPEngine::changeConstraint(ConstraintPtr , LinearFunctionPtr ,
                                    double , double )
 #endif
 {
@@ -272,13 +272,13 @@ void OsiLPEngine::changeConstraint(ConstraintPtr , LinearFunctionPtr ,
 
     // first zero out all the existing coefficients in the row.
     for (VariableGroupConstIterator it = clf->termsBegin(); it !=
-         clf->termsEnd(); 
+         clf->termsEnd();
         ++it) {
       osiclp->modifyCoefficient(row, it->first->getIndex(), 0.0);
     }
-    
+
     // assign new coefficients in the row.
-    for (VariableGroupConstIterator it = lf->termsBegin(); it != lf->termsEnd(); 
+    for (VariableGroupConstIterator it = lf->termsBegin(); it != lf->termsEnd();
         ++it) {
       osiclp->modifyCoefficient(row, it->first->getIndex(), it->second);
     }
@@ -308,7 +308,7 @@ void OsiLPEngine::changeObj(FunctionPtr f, double)
         ++it) {
       obj[it->first->getIndex()]  = it->second;
     }
-  } 
+  }
   osilp_->setObjective(obj);
   objChanged_ = true;
   delete [] obj;
@@ -320,7 +320,7 @@ void OsiLPEngine::clear() {
   if (osilp_) {
     osilp_->reset();
     osilp_->setHintParam(OsiDoReducePrint);
-    osilp_->messageHandler()->setLogLevel(0); 
+    osilp_->messageHandler()->setLogLevel(0);
   }
   if (problem_) {
     problem_->unsetEngine();
@@ -329,10 +329,10 @@ void OsiLPEngine::clear() {
 }
 
 
-void OsiLPEngine::disableStrBrSetup() 
+void OsiLPEngine::disableStrBrSetup()
 {
 #if SPEW
-  logger_->msgStream(LogDebug) << me_ << "disabling strong branching." 
+  logger_->msgStream(LogDebug) << me_ << "disabling strong branching."
                                << std::endl;
 #endif
   strBr_ = false;
@@ -348,7 +348,7 @@ EnginePtr OsiLPEngine::emptyCopy()
 }
 
 
-void OsiLPEngine::enableStrBrSetup() 
+void OsiLPEngine::enableStrBrSetup()
 {
 #if SPEW
   logger_->msgStream(LogDebug) << me_ << "enabling strong branching."
@@ -370,25 +370,25 @@ std::string OsiLPEngine::getName() const
 }
 
 
-double OsiLPEngine::getSolutionValue() 
+double OsiLPEngine::getSolutionValue()
 {
   return sol_->getObjValue();
 }
 
 
-ConstSolutionPtr OsiLPEngine::getSolution() 
+ConstSolutionPtr OsiLPEngine::getSolution()
 {
   return sol_;
 }
 
 
-OsiSolverInterface * OsiLPEngine::getSolver() 
+OsiSolverInterface * OsiLPEngine::getSolver()
 {
   return osilp_;
 }
 
 
-EngineStatus OsiLPEngine::getStatus() 
+EngineStatus OsiLPEngine::getStatus()
 {
   return status_;
 }
@@ -422,7 +422,7 @@ void OsiLPEngine::load(ProblemPtr problem)
 
   ConstraintConstIterator c_iter;
   VariableConstIterator v_iter;
-  
+
   conlb = new double[numcons];
   conub = new double[numcons];
   varlb = new double[numvars];
@@ -431,8 +431,8 @@ void OsiLPEngine::load(ProblemPtr problem)
   VariableGroupConstIterator it;
   /* map the variables in this constraint to the function type (linear here) */
 
-  //XXX Need to count the number of nnz in the problem 
-  //     -- maybe add it to class later  
+  //XXX Need to count the number of nnz in the problem
+  //     -- maybe add it to class later
   LinearFunctionPtr lin;
   int nnz = 0;
   for (c_iter = problem->consBegin(); c_iter != problem->consEnd(); ++c_iter) {
@@ -446,7 +446,7 @@ void OsiLPEngine::load(ProblemPtr problem)
   index = new int[nnz];
   value = new double[nnz];
   start = new CoinBigIndex[numcons+1];
-    
+
   i = 0;
   j=0;
   start[0] = 0;
@@ -463,9 +463,9 @@ void OsiLPEngine::load(ProblemPtr problem)
     ++i;
     start[i]=j;
   }
-  
+
   i = 0;
-  for (v_iter=problem->varsBegin(); v_iter!=problem->varsEnd(); ++v_iter, 
+  for (v_iter=problem->varsBegin(); v_iter!=problem->varsEnd(); ++v_iter,
        ++i) {
     varlb[i] = (*v_iter)->getLb();
     varub[i] = (*v_iter)->getUb();
@@ -479,7 +479,7 @@ void OsiLPEngine::load(ProblemPtr problem)
   obj = new double[numvars];
   i = 0;
   if (lin) {
-    for (v_iter=problem->varsBegin(); v_iter!=problem->varsEnd(); ++v_iter, 
+    for (v_iter=problem->varsBegin(); v_iter!=problem->varsEnd(); ++v_iter,
          ++i) {
       obj[i]   = obj_sense*lin->getWeight(*v_iter);
     }
@@ -487,7 +487,7 @@ void OsiLPEngine::load(ProblemPtr problem)
     memset(obj, 0, numvars * sizeof(double));
   }
 
-  r_mat = new CoinPackedMatrix(false, numvars, numcons, nnz, value, index, 
+  r_mat = new CoinPackedMatrix(false, numvars, numcons, nnz, value, index,
                                start, NULL);
   osilp_->loadProblem(*r_mat, varlb, varub, obj, conlb, conub);
 
@@ -516,7 +516,7 @@ void OsiLPEngine::load(ProblemPtr problem)
 
 void OsiLPEngine::loadFromWarmStart(const WarmStartPtr ws)
 {
-  ConstOsiLPWarmStartPtr ws2 = 
+  ConstOsiLPWarmStartPtr ws2 =
     boost::dynamic_pointer_cast <const OsiLPWarmStart> (ws);
   assert (ws2);
   CoinWarmStart *coin_ws = ws2->getCoinWarmStart();
@@ -544,7 +544,7 @@ OsiSolverInterface* OsiLPEngine::newSolver_(OsiLPEngineName ename)
 #if MNTROSICLP
     si = new OsiClpSolverInterface();
     si->setHintParam(OsiDoReducePrint);
-    si->messageHandler()->setLogLevel(0); 
+    si->messageHandler()->setLogLevel(0);
 #else
     logger_->errStream()
       << me_ << "Minotaur is not compiled with OsiClp!" << std::endl;
@@ -554,7 +554,7 @@ OsiSolverInterface* OsiLPEngine::newSolver_(OsiLPEngineName ename)
 #if MNTROSICPX
     si = new OsiCpxSolverInterface();
     si->setHintParam(OsiDoReducePrint);
-    si->messageHandler()->setLogLevel(0); 
+    si->messageHandler()->setLogLevel(0);
 #else
     logger_->errStream()
       << me_ << "Minotaur is not compiled with OsiCpx!" << std::endl;
@@ -599,7 +599,7 @@ void OsiLPEngine::setIterationLimit(int limit)
   OsiIntParam key = OsiMaxNumIteration;
   osilp_->setIntParam(key, limit);
 }
-  
+
 
 EngineStatus OsiLPEngine::solve()
 {
@@ -619,7 +619,7 @@ EngineStatus OsiLPEngine::solve()
   osilp_->resolve();
 
   if (osilp_->isProvenOptimal()) {
-    status_ = ProvenOptimal;  
+    status_ = ProvenOptimal;
     sol_->setPrimal(osilp_->getStrictColSolution());
     sol_->setObjValue(osilp_->getObjValue()
         +problem_->getObjective()->getConstant());
@@ -664,13 +664,13 @@ EngineStatus OsiLPEngine::solve()
     ++(stats_->strCalls);
     stats_->strIters += osilp_->getIterationCount();
     stats_->strTime  += timer_->query();
-  } 
+  }
 
 #if SPEW
   logger_->msgStream(LogDebug) << me_ << "status = " << status_ << std::endl
-                               << me_ << "solution value = " 
+                               << me_ << "solution value = "
                                << sol_->getObjValue() << std::endl
-                               << me_ << "iterations = " 
+                               << me_ << "iterations = "
                                << osilp_->getIterationCount() << std::endl;
 #endif
   timer_->stop();
@@ -685,8 +685,8 @@ EngineStatus OsiLPEngine::solve()
 }
 
 
-void OsiLPEngine::writeLP(const char *filename) const 
-{ 
+void OsiLPEngine::writeLP(const char *filename) const
+{
   osilp_->writeLp(filename);
 }
 
@@ -705,13 +705,13 @@ void OsiLPEngine::writeStats(std::ostream &out) const
 }
 
 
-// Local Variables: 
-// mode: c++ 
-// eval: (c-set-style "k&r") 
-// eval: (c-set-offset 'innamespace 0) 
-// eval: (setq c-basic-offset 2) 
-// eval: (setq fill-column 78) 
-// eval: (auto-fill-mode 1) 
-// eval: (setq column-number-mode 1) 
-// eval: (setq indent-tabs-mode nil) 
+// Local Variables:
+// mode: c++
+// eval: (c-set-style "k&r")
+// eval: (c-set-offset 'innamespace 0)
+// eval: (setq c-basic-offset 2)
+// eval: (setq fill-column 78)
+// eval: (auto-fill-mode 1)
+// eval: (setq column-number-mode 1)
+// eval: (setq indent-tabs-mode nil)
 // End:

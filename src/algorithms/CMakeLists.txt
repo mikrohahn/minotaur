@@ -6,7 +6,7 @@ include_directories("${PROJECT_BINARY_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/engines")
 include_directories("${PROJECT_SOURCE_DIR}/src/interfaces/ampl")
-include_directories("${ASL_INC_DIR_F}")
+include_directories(${MNTR_DEP_ASL_INCLUDE_DIRS})
 
 set (QPOASES_LIBS)
 set (GFORTRAN_COMPILER)
@@ -27,26 +27,14 @@ endif()
 
 if (LINK_IPOPT)
   add_definitions(-DUSE_IPOPT)
-  include_directories("${PROJECT_SOURCE_DIR}/src/engines/Ipopt")
-  include_directories("${IPOPT_INC_DIR_F}")
-  link_directories(${IPOPT_LIB_DIR_F})
+  include_directories(${MNTR_ENGINE_IPOPT_INCLUDE_DIRS})
+  link_directories(${MNTR_ENGINE_IPOPT_LIBRARY_DIRS})
 endif()
 
 if (LINK_OSI)
   add_definitions(-DUSE_OSILP)
-  include_directories("${PROJECT_SOURCE_DIR}/src/engines/OsiLP")
-  if (OSI_INC_DIR_F)
-    include_directories("${OSI_INC_DIR_F}")
-  endif()
-  if (OSI_LIB_DIR_F)
-    link_directories(${OSI_LIB_DIR_F})
-  endif()
-  if (LINK_CLP)
-    link_directories(${CLP_LIB_DIR_F})
-  endif()
-  if (LINK_CPX)
-    link_directories(${CPX_LIB_DIR})
-  endif()
+  include_directories(${MNTR_ENGINE_OSI_INCLUDE_DIRS})
+  link_directories(${MNTR_ENGINE_OSI_LIBRARY_DIRS})
 endif()
 
 if (LINK_QPOASES)
@@ -55,23 +43,23 @@ if (LINK_QPOASES)
   include_directories("${QPOASES_INC_DIR}")
   set (QPOASES_LIBS mntrqpoases)
 endif()
-  
+
 if (Fortran_COMPILER_NAME STREQUAL "gfortran")
   if (LINK_IPOPT OR LINK_FILTER_SQP OR LINK_BQPD)
     set (GFORTRAN_COMPILER gfortran)
   endif()
 endif()
 
-set (ALL_EXEC_LIBS 
-	"mntrampl" 
-	"mntrengfac" 
-	"${IPOPT_LIBS}"
-        "${OSI_LIBS}"
+set (ALL_EXEC_LIBS
+	"mntrampl"
+	"mntrengfac"
+	"${MNTR_ENGINE_IPOPT_LIBRARIES}"
+        "${MNTR_ENGINE_OSI_LIBRARIES}"
         "${FILTER_SQP_LIBS}"
 	"${BQPD_LIBS}"
         "${QPOASES_LIBS}"
         "minotaur"
-	"${ASL_LIBS}"
+	"${MNTR_DEP_ASL_LIBRARIES}"
         "lapack"
 	"blas"
         "${GFORTRAN_COMPILER}"
@@ -85,11 +73,11 @@ message(STATUS ${MSG_HEAD} "ALL_EXEC_LIBS after removing duplicates =  ${ALL_EXE
 
 
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 set (BNB_SOURCES
-  Bnb.cpp 
+  Bnb.cpp
 )
 
 add_executable(bnb ${BNB_SOURCES})
@@ -127,11 +115,11 @@ target_link_libraries(mcbnb ${ALL_EXEC_LIBS})
 install(TARGETS mcbnb RUNTIME DESTINATION bin)
 
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 set (QPD_SOURCES
-  QPDive.cpp 
+  QPDive.cpp
 )
 
 add_executable(qpd ${QPD_SOURCES})
@@ -141,11 +129,11 @@ target_link_libraries(qpd ${ALL_EXEC_LIBS})
 install(TARGETS qpd RUNTIME DESTINATION bin)
 
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 set (QG_SOURCES
-  qg.cpp 
+  qg.cpp
 )
 
 add_executable(qg ${QG_SOURCES})
@@ -155,11 +143,11 @@ target_link_libraries(qg ${ALL_EXEC_LIBS})
 install(TARGETS qg RUNTIME DESTINATION bin)
 
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 #set (POLYNOMIAL_SOURCES
-#  polynomial-solver.cpp 
+#  polynomial-solver.cpp
 #)
 #
 #add_executable(polly ${POLYNOMIAL_SOURCES})
@@ -170,11 +158,11 @@ install(TARGETS qg RUNTIME DESTINATION bin)
 
 
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 set (GLOB_SOURCES
-  Glob.cpp 
+  Glob.cpp
 )
 
 add_executable(glob ${GLOB_SOURCES})
@@ -183,13 +171,13 @@ target_link_libraries(glob ${ALL_EXEC_LIBS})
 # This will install the binary in bin directory.
 install(TARGETS glob RUNTIME DESTINATION bin)
 
-# Serdar added for branch and cut method. 
+# Serdar added for branch and cut method.
 ##############################################################################
-## Add lines specific to your binaries in this section. 
+## Add lines specific to your binaries in this section.
 ## Use the lines meant for bnb as a template.
 ##############################################################################
 #set (BNC_SOURCES
-#  Bnc.cpp 
+#  Bnc.cpp
 #)
 #
 #add_executable(bnc ${BNC_SOURCES})

@@ -42,7 +42,7 @@
 namespace Minotaur {
 
 const std::string IpoptEngine::me_ = "IpoptEngine: ";
-      
+
 // ----------------------------------------------------------------------- //
 // ----------------------------------------------------------------------- //
 IpoptSolution::IpoptSolution()
@@ -52,7 +52,7 @@ IpoptSolution::IpoptSolution()
 }
 
 
-IpoptSolution::IpoptSolution(const double *x, double objval, 
+IpoptSolution::IpoptSolution(const double *x, double objval,
                              ProblemPtr problem)
 : Solution(objval, x, problem),
   dualXLow_(0),
@@ -132,7 +132,7 @@ void IpoptSolution::setDualOfVars(const double *lower, const double *upper)
     if (!dualX_) {
       dualX_ = new double[n_];
     }
-    d = dualX_; 
+    d = dualX_;
     l = dualXLow_;
     u = dualXUp_;
     for (UInt i=0; i<n_; ++i, ++d, ++l, ++u) {
@@ -151,7 +151,7 @@ void IpoptSolution::write(std::ostream &out) const
 
   d=x_;
   if (problem_) {
-    for (VariableConstIterator it=problem_->varsBegin(); 
+    for (VariableConstIterator it=problem_->varsBegin();
         it!=problem_->varsEnd(); ++it, ++d) {
       out << (*it)->getName() << "   " << *d << std::endl;
     }
@@ -228,7 +228,7 @@ void IpoptWarmStart::makeCopy()
     // make full copy and save.
     IpoptSolPtr sol = (IpoptSolPtr) new IpoptSolution(sol_);
     sol_ = sol;
-  } 
+  }
 }
 
 
@@ -263,7 +263,7 @@ IpoptEngine::IpoptEngine()
   useWs_(false),
   ws_(IpoptWarmStartPtr()) // NULL
 {
-#if defined(USE_IPOPT)  
+#if defined(USE_IPOPT)
   problem_ = ProblemPtr();   // NULL
   logger_ = (LoggerPtr) new Logger(LogInfo);
   myapp_ = new Ipopt::IpoptApplication();
@@ -275,7 +275,7 @@ IpoptEngine::IpoptEngine()
   //myapp_->Options()->SetStringValue("hessian_approximation", "limited-memory");
   //myapp_->Initialize("");
   status_ = EngineError;
-#else 
+#else
   assert(!"ipopt engine can only be called when compiled with ipopt!")
 #endif
 }
@@ -293,7 +293,7 @@ IpoptEngine::IpoptEngine(EnvPtr env)
   timer_(0),
   ws_(IpoptWarmStartPtr()) // NULL
 {
-#if defined(USE_IPOPT)  
+#if defined(USE_IPOPT)
   problem_ = ProblemPtr();   // NULL
   logger_ = (LoggerPtr) new Logger((LogLevel) env->getOptions()->
       findInt("engine_log_level")->getValue());
@@ -318,8 +318,8 @@ IpoptEngine::IpoptEngine(EnvPtr env)
   stats_->strTime  = 0;
   stats_->iters    = 0;
   stats_->strIters = 0;
-  
-#else 
+
+#else
   assert(!"ipopt engine can only be called when compiled with ipopt!")
 #endif
 }
@@ -370,7 +370,7 @@ void IpoptEngine::changeBound(VariablePtr, double, double)
 }
 
 
-void IpoptEngine::changeConstraint(ConstraintPtr, LinearFunctionPtr, 
+void IpoptEngine::changeConstraint(ConstraintPtr, LinearFunctionPtr,
                                    double , double)
 {
   consChanged_ = true;
@@ -389,7 +389,7 @@ void IpoptEngine::changeObj(FunctionPtr, double)
 }
 
 
-void IpoptEngine::clear() 
+void IpoptEngine::clear()
 {
 
   ws_.reset();
@@ -437,7 +437,7 @@ ConstSolutionPtr IpoptEngine::getSolution()
 {
   if (sol_) {
     return sol_;
-  } 
+  }
   return SolutionPtr(); // NULL
 }
 
@@ -460,7 +460,7 @@ WarmStartPtr IpoptEngine::getWarmStartCopy()
 }
 
 
-double IpoptEngine::getSolutionValue() 
+double IpoptEngine::getSolutionValue()
 {
   return mynlp_->getSolutionValue();
 }
@@ -505,7 +505,7 @@ void IpoptEngine::loadFromWarmStart(const WarmStartPtr ws)
     // Two important points:
     // 1. dynamic cast can't seem to be avoided.
     // 2. we need to use boost::dynamic_pointer_cast instead of dynamic_cast.
-    ConstIpoptWarmStartPtr ws2 = 
+    ConstIpoptWarmStartPtr ws2 =
       boost::dynamic_pointer_cast <const IpoptWarmStart> (ws);
 
     // now create a full copy.
@@ -537,7 +537,7 @@ bool IpoptEngine::presolve_()
   status_ = EngineUnknownStatus;
   // visit each variable and check bounds. Stop if bad bounds are found or if
   // all variables are fixed.
-  for (VariableConstIterator it=problem_->varsBegin(); it!=problem_->varsEnd(); 
+  for (VariableConstIterator it=problem_->varsBegin(); it!=problem_->varsEnd();
       ++it) {
     v = *it;
     diff = v->getUb() - v->getLb();
@@ -566,7 +566,7 @@ bool IpoptEngine::presolve_()
     obj_value = problem_->getObjValue(x, &e);
 
     // check if constraints are violated.
-    for (ConstraintConstIterator it=problem_->consBegin(); 
+    for (ConstraintConstIterator it=problem_->consBegin();
         it!=problem_->consEnd(); ++it) {
       act = (*it)->getActivity(x, &e);
       vio = std::max(act-(*it)->getUb(), (*it)->getLb()-act);
@@ -578,7 +578,7 @@ bool IpoptEngine::presolve_()
 
    // sol_ must be set even if the problem is infeasible because QG handler
    // may need this point for cut generation etc.
-    sol_->setPrimal(x); 
+    sol_->setPrimal(x);
     if (vio>etol_) {
       status_ = ProvenLocalInfeasible;
     } else {
@@ -638,25 +638,25 @@ void IpoptEngine::setOptionsForRepeatedSolve()
     //myapp_->Options()->SetIntegerValue("max_iter", 30);
     //myapp_->Options()->SetStringValue("mu_strategy", "adaptive");
     //myapp_->Options()->SetStringValue("output_file", "ipopt.out");
-    //myapp_->Options()->SetStringValue("hessian_approximation", 
+    //myapp_->Options()->SetStringValue("hessian_approximation",
     //"limited-memory");
     //myapp_->Initialize("");
-    //myapp_->Options()->SetNumericValue("dual_inf_tol", 1e-7);    
+    //myapp_->Options()->SetNumericValue("dual_inf_tol", 1e-7);
     //myapp_->Options()->SetNumericValue("constr_viol_tol", 1e-7);
     //myapp_->Options()->SetNumericValue("compl_inf_tol", 1e-12);
     //myapp_->Options()->SetNumericValue("gamma_phi", 1e-8, true, true);
     //myapp_->Options()->SetNumericValue("gamma_theta", 1e-4, true, true);
     // myapp_->Options()->SetNumericValue("required_infeasibility_reduction",
     // 0.3, true, true);
-    myapp_->Options()->SetStringValue("expect_infeasible_problem","yes", true, 
+    myapp_->Options()->SetStringValue("expect_infeasible_problem","yes", true,
                                       true);
     //myapp_->Options()->SetNumericValue("expect_infeasible_problem_ctol",
     //1e-1, true, true);
-    //myapp_->Options()->SetNumericValue("expect_infeasible_problem_ytol",1e-1, 
+    //myapp_->Options()->SetNumericValue("expect_infeasible_problem_ytol",1e-1,
     //true, true);
     myapp_->Options()->SetStringValue("mu_strategy", "adaptive", true, true);
     myapp_->Options()->SetStringValue("mu_oracle","probing", true, true);
-    //myapp_->Options()->SetStringValue("fixed_variable_treatment", 
+    //myapp_->Options()->SetStringValue("fixed_variable_treatment",
     //"make_parameter");
     //myapp_->Options()->SetNumericValue("bound_relax_factor", 1e-5);
   }
@@ -667,10 +667,10 @@ void IpoptEngine::setOptionsForSingleSolve()
 {
   if (myapp_) {
     myapp_->Options()->SetIntegerValue("print_level", 0);
-    myapp_->Options()->SetStringValue("expect_infeasible_problem","yes", true, 
+    myapp_->Options()->SetStringValue("expect_infeasible_problem","yes", true,
                                       true);
     myapp_->Options()->SetStringValue("mu_strategy", "adaptive", true, true);
-    myapp_->Options()->SetStringValue("mu_oracle","probing", true, 
+    myapp_->Options()->SetStringValue("mu_oracle","probing", true,
                                       true);
     //myapp_->Options()->SetNumericValue("required_infeasibility_reduction",
     //0.3, true, true);
@@ -680,7 +680,7 @@ void IpoptEngine::setOptionsForSingleSolve()
 
 EngineStatus IpoptEngine::solve()
 {
-  Ipopt::ApplicationReturnStatus status = Ipopt::Internal_Error; 
+  Ipopt::ApplicationReturnStatus status = Ipopt::Internal_Error;
   bool should_stop;
 
   stats_->calls += 1;
@@ -726,16 +726,16 @@ EngineStatus IpoptEngine::solve()
   }
 
 #if SPEW
-  logger_->msgStream(LogDebug) << me_ << "time taken = " << timer_->query() 
+  logger_->msgStream(LogDebug) << me_ << "time taken = " << timer_->query()
     << std::endl;
-  logger_->msgStream(LogDebug) << me_ << "Ipopt's status = " << status 
+  logger_->msgStream(LogDebug) << me_ << "Ipopt's status = " << status
     << std::endl;
 #endif
   //exit(0);
 
   // See IpReturnCodes_inc.h for the list
   switch (status) {
-   case Ipopt::Solve_Succeeded : 
+   case Ipopt::Solve_Succeeded :
      status_ = ProvenLocalOptimal;
      sol_ = mynlp_->getSolution();
      break;
@@ -795,9 +795,9 @@ EngineStatus IpoptEngine::solve()
 #if SPEW
   logger_->msgStream(LogDebug) << me_ << "solve number = " << stats_->calls
     << std::endl;
-  logger_->msgStream(LogDebug) << me_ << "number of iterations = " << iters 
+  logger_->msgStream(LogDebug) << me_ << "number of iterations = " << iters
     << std::endl;
-  logger_->msgStream(LogDebug) << me_ << "status = " << getStatusString() 
+  logger_->msgStream(LogDebug) << me_ << "status = " << getStatusString()
     << std::endl;
   logger_->msgStream(LogDebug) << me_ << "obj = ";
   if (sol_) {
@@ -805,12 +805,12 @@ EngineStatus IpoptEngine::solve()
   } else {
     logger_->msgStream(LogDebug) << 1e40 << std::endl;
   }
-#endif 
+#endif
   if (true == strBr_) {
     stats_->strCalls += 1;
     stats_->strTime  += timer_->query();
     stats_->strIters += iters;
-  } 
+  }
   stats_->time  += timer_->query();
   stats_->iters += iters;
   timer_->stop();
@@ -819,9 +819,9 @@ EngineStatus IpoptEngine::solve()
   consChanged_ = false;
   return status_;
 }
-	  
 
-void IpoptEngine::writeStats(std::ostream &out) const 
+
+void IpoptEngine::writeStats(std::ostream &out) const
 {
   if (stats_) {
     std::string me = "Ipopt: ";
@@ -837,14 +837,14 @@ void IpoptEngine::writeStats(std::ostream &out) const
 
 } // namespace Minotaur
 
-// 
+//
 // ############# IpOptFunInterface ###################
 //
-  
+
 /* Constructor. */
 namespace Ipopt{
 
-IpoptFunInterface::IpoptFunInterface(Minotaur::ProblemPtr problem, 
+IpoptFunInterface::IpoptFunInterface(Minotaur::ProblemPtr problem,
                                      Minotaur::IpoptSolPtr sol)
 : bOff_(1e-9),
   bTol_(1e-6),
@@ -870,10 +870,10 @@ void IpoptFunInterface::copySolution(Minotaur::IpoptSolPtr sol)
 }
 
 #ifdef NDEBUG
-bool IpoptFunInterface::get_bounds_info(Index , Number* x_l, Number* x_u, 
+bool IpoptFunInterface::get_bounds_info(Index , Number* x_l, Number* x_u,
                                         Index , Number* g_l, Number* g_u)
 #else
-bool IpoptFunInterface::get_bounds_info(Index n, Number* x_l, Number* x_u, 
+bool IpoptFunInterface::get_bounds_info(Index n, Number* x_l, Number* x_u,
                                         Index m, Number* g_l, Number* g_u)
 #endif
 {
@@ -887,7 +887,7 @@ bool IpoptFunInterface::get_bounds_info(Index n, Number* x_l, Number* x_u,
   Minotaur::VariablePtr vPtr;
   Minotaur::VariableConstIterator vIter;
 
-  for (vIter=problem_->varsBegin(); vIter!=problem_->varsEnd(); 
+  for (vIter=problem_->varsBegin(); vIter!=problem_->varsEnd();
       ++vIter,++x_l,++x_u) {
     vPtr = *vIter;
     l = vPtr->getLb();
@@ -902,7 +902,7 @@ bool IpoptFunInterface::get_bounds_info(Index n, Number* x_l, Number* x_u,
   // constraint bounds
   Minotaur::ConstraintPtr cPtr;
   Minotaur::ConstraintConstIterator cIter;
-  for (cIter=problem_->consBegin(); cIter!=problem_->consEnd(); 
+  for (cIter=problem_->consBegin(); cIter!=problem_->consEnd();
       ++cIter,++g_l,++g_u) {
     cPtr = *cIter;
     *g_l = cPtr->getLb();
@@ -914,7 +914,7 @@ bool IpoptFunInterface::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 
 bool IpoptFunInterface::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
-                                     Index& nnz_h_lag, 
+                                     Index& nnz_h_lag,
                                      IndexStyleEnum& index_style)
 {
   Minotaur::ConstVariablePtr vPtr;
@@ -927,29 +927,29 @@ bool IpoptFunInterface::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   n = problem_->getNumVars();
   m = problem_->getNumCons();
 
-  // nonzeros in jacobian. 
+  // nonzeros in jacobian.
   nnz_jac_g = problem_->getNumJacNnzs();
 
-  // ... and in hessian. 
+  // ... and in hessian.
   //nnz_h_lag = problem_->getNumHessNnzs();
-  nnz_h_lag = problem_->getNumHessNnzs(); 
+  nnz_h_lag = problem_->getNumHessNnzs();
 
   // We use the standard c index style for row/col entries
   index_style = TNLP::C_STYLE;
 
-  return true; 
+  return true;
 }
 
 
 #ifdef NDEBUG
 bool IpoptFunInterface::get_starting_point(Index n, bool , Number* x,
-                                           bool init_z, Number* z_L, 
-                                           Number* z_U, Index m, 
+                                           bool init_z, Number* z_L,
+                                           Number* z_U, Index m,
                                            bool init_lambda, Number* lambda)
 #else
 bool IpoptFunInterface::get_starting_point(Index n, bool init_x, Number* x,
-                                           bool init_z, Number* z_L, 
-                                           Number* z_U, Index m, 
+                                           bool init_z, Number* z_L,
+                                           Number* z_U, Index m,
                                            bool init_lambda, Number* lambda)
 #endif
 {
@@ -1037,7 +1037,7 @@ bool IpoptFunInterface::eval_g(Index, const Number* x, bool, Index, Number* g)
 }
 
 
-bool IpoptFunInterface::eval_grad_f(Index n, const Number* x, bool, 
+bool IpoptFunInterface::eval_grad_f(Index n, const Number* x, bool,
                                     Number* grad_f)
 {
   // return the gradient of the objective function grad_{x} f(x)
@@ -1057,7 +1057,7 @@ bool IpoptFunInterface::eval_grad_f(Index n, const Number* x, bool,
 }
 
 
-bool IpoptFunInterface::eval_h(Index, const Number* x, bool, Number obj_factor, 
+bool IpoptFunInterface::eval_h(Index, const Number* x, bool, Number obj_factor,
                                Index, const Number* lambda, bool, Index,
                                Index* iRow, Index* jCol, Number* values)
 {
@@ -1066,8 +1066,8 @@ bool IpoptFunInterface::eval_h(Index, const Number* x, bool, Number obj_factor,
     problem_->getHessian()->fillRowColIndices((Minotaur::UInt *)iRow,
         (Minotaur::UInt *)jCol);
   } else if (x!=0 && lambda!=0 && values!=0) {
-    problem_->getHessian()->fillRowColValues((double *)x, 
-        (double) obj_factor, (double *) lambda, 
+    problem_->getHessian()->fillRowColValues((double *)x,
+        (double) obj_factor, (double *) lambda,
         (double *)values, &error);
     //std::cout << "error = " << error << std::endl;
     //for (int i=0; i<problem_->getNumVars(); ++i) {
@@ -1079,12 +1079,12 @@ bool IpoptFunInterface::eval_h(Index, const Number* x, bool, Number obj_factor,
   } else {
     assert (!"one of x, lambda and values is NULL!");
   }
-  return (0==error); 
+  return (0==error);
 }
 
 
-bool IpoptFunInterface::eval_jac_g(Index, const Number* x, bool, Index, 
-                                   Index, Index* iRow, Index *jCol, 
+bool IpoptFunInterface::eval_jac_g(Index, const Number* x, bool, Index,
+                                   Index, Index* iRow, Index *jCol,
                                    Number* values)
 {
   int error = 0;
@@ -1095,18 +1095,18 @@ bool IpoptFunInterface::eval_jac_g(Index, const Number* x, bool, Index,
   }
   else {
     // return the values of the jacobian of the constraints
-    problem_->getJacobian()->fillRowColValues((double *) x, 
+    problem_->getJacobian()->fillRowColValues((double *) x,
         (double *) values, &error);
   }
   return (0==error);
 }
 
 
-void IpoptFunInterface::finalize_solution(SolverReturn, Index, const Number* x, 
+void IpoptFunInterface::finalize_solution(SolverReturn, Index, const Number* x,
                                           const Number* z_L, const Number* z_U,
                                           Index, const Number*,
                                           const Number* lambda,
-                                          Number obj_value, const IpoptData*, 
+                                          Number obj_value, const IpoptData*,
                                           IpoptCalculatedQuantities* /* q */)
 {
   sol_->setPrimal(x);
@@ -1125,13 +1125,13 @@ double IpoptFunInterface::getSolutionValue() const
 
 } // namespace Ipopt
 
-// Local Variables: 
-// mode: c++ 
-// eval: (c-set-style "k&r") 
-// eval: (c-set-offset 'innamespace 0) 
-// eval: (setq c-basic-offset 2) 
-// eval: (setq fill-column 78) 
-// eval: (auto-fill-mode 1) 
-// eval: (setq column-number-mode 1) 
-// eval: (setq indent-tabs-mode nil) 
+// Local Variables:
+// mode: c++
+// eval: (c-set-style "k&r")
+// eval: (c-set-offset 'innamespace 0)
+// eval: (setq c-basic-offset 2)
+// eval: (setq fill-column 78)
+// eval: (auto-fill-mode 1)
+// eval: (setq column-number-mode 1)
+// eval: (setq indent-tabs-mode nil)
 // End:

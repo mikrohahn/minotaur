@@ -1,10 +1,10 @@
 include_directories("${PROJECT_BINARY_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/engines")
-include_directories("${CPPUNIT_INC_DIR_F}")
+include_directories(${MNTR_DEP_CPPUNIT_INCLUDE_DIRS})
 
 set (MINOTAUR_SOURCES
-     unittest.cpp 
+     unittest.cpp
      CGraphUT.cpp
      #CoverCutGeneratorUT.cpp # Serdar added.
      EnvironmentUT.cpp
@@ -20,12 +20,12 @@ set (MINOTAUR_SOURCES
      OperationsUT.cpp
      PolyUT.cpp
      QuadraticFunctionUT.cpp
-     TimerUT.cpp 
+     TimerUT.cpp
 )
 
 ## define where to search for external libraries. This path must be defined
 ## before add_executable is called.
-link_directories(${CPPUNIT_LIB_DIR_F})
+link_directories(${MNTR_DEP_CPPUNIT_LIBRARY_DIRS})
 
 if (LINK_BQPD)
   add_definitions(-DUSE_BQPD)
@@ -40,26 +40,15 @@ endif()
 
 if (LINK_IPOPT)
   add_definitions(-DUSE_IPOPT)
-  include_directories("${PROJECT_SOURCE_DIR}/src/engines/Ipopt")
+  include_directories(${MNTR_ENGINE_IPOPT_INCLUDE_DIRS})
   set (MINOTAUR_SOURCES  ${MINOTAUR_SOURCES} NLPBnbUT.cpp IpoptEngineUT.cpp)
-  link_directories(${IPOPT_LIB_DIR_F})
+  link_directories(${MNTR_ENGINE_IPOPT_LIBRARY_DIRS})
 endif()
 
 if (LINK_OSI)
   add_definitions(-DUSE_OSILP)
-  include_directories("${PROJECT_SOURCE_DIR}/src/engines/OsiLP")
-  if (OSI_INC_DIR_F)
-    include_directories("${OSI_INC_DIR_F}")
-  endif()
-  if (OSI_LIB_DIR_F) 
-    link_directories(${OSI_LIB_DIR_F})
-  endif()
-  if (LINK_CLP)
-    link_directories(${CLP_LIB_DIR_F})
-  endif()
-  if (LINK_CPX)
-    link_directories(${CPX_LIB_DIR})
-  endif()
+  include_directories(${MNTR_ENGINE_OSI_INCLUDE_DIRS})
+  link_directories(${MNTR_ENGINE_OSI_LIBRARY_DIRS})
 endif()
 
 if (LINK_ASL)
@@ -82,7 +71,7 @@ if (LINK_ASL)
     set (MINOTAUR_SOURCES  ${MINOTAUR_SOURCES} AMPLOsiUT.cpp)
   endif()
 endif()
-  
+
 add_executable(unittest EXCLUDE_FROM_ALL ${MINOTAUR_SOURCES})
 target_link_libraries(unittest cppunit mntrengfac)
 
@@ -99,20 +88,19 @@ if (LINK_FILTER_SQP)
   endif()
 endif()
 if (LINK_IPOPT)
-  target_link_libraries(unittest mntripopt ${IPOPT_LIBS})
+  target_link_libraries(unittest ${MNTR_ENGINE_IPOPT_LIBRARIES})
   if (Fortran_COMPILER_NAME STREQUAL "gfortran")
     target_link_libraries(unittest gfortran)
   endif()
   message(STATUS ${MSG_HEAD} "fortran compiler = ${Fortran_COMPILER_NAME}")
 endif()
 if (LINK_OSI)
-  target_link_libraries(unittest mntrosilp ${OSI_LIBS})
+  target_link_libraries(unittest ${MNTR_ENGINE_OSI_LIBRARIES})
 endif()
 if (LINK_ASL)
-  target_link_libraries(unittest mntrampl ${ASL_LIB_DIR_F}/amplsolver.a)
+  target_link_libraries(unittest mntrampl ${MNTR_DEP_AMPL_LIBRARIES})
 endif()
 
 #add_custom_target(Name test unittest all)
 target_link_libraries(unittest minotaur lapack blas dl)
 target_link_libraries(unittest ${MNTR_EXTRA_LIBS})
-

@@ -2,7 +2,7 @@ add_definitions(-DUSE_MINOTAUR_AMPL_INTERFACE)
 include_directories("${PROJECT_BINARY_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/base")
 include_directories("${PROJECT_SOURCE_DIR}/src/engines")
-include_directories("${ASL_INC_DIR_F}")
+include_directories(${MNTR_DEP_ASL_INCLUDE_DIRS})
 
 set (ASL_LIB_SOURCES
   AMPLHessian.cpp
@@ -31,4 +31,3 @@ install(FILES ${ASL_LIB_HEADERS} DESTINATION include/minotaur)
 
 # install the binary at the user specified directory
 # install(TARGETS minotaurampl RUNTIME DESTINATION bin)
-
